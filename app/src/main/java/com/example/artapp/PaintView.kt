@@ -10,12 +10,11 @@ import android.view.MotionEvent
 
 class PaintView : View {
 
-    private var path = Path()
-    private var brush = Paint()
+    private val path = Path()
+    private val brush = Paint()
 
 
-
-     constructor(context: Context): super(context) {
+    constructor(context: Context) : super(context) {
         brush.isAntiAlias = true
         brush.color = Color.BLACK
         brush.style = Paint.Style.STROKE
@@ -46,7 +45,6 @@ class PaintView : View {
         super.onDraw(canvas)
         canvas!!.drawPath(path, brush)
     }
-
 
 
 }
