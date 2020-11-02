@@ -33,8 +33,6 @@ class PaintView : View {
             return true
         } else if (event.action == MotionEvent.ACTION_MOVE)
             path.lineTo(x, y)
-        else
-            return false
 
 
         postInvalidate()
