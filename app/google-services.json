@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1037667554131",
+    "firebase_url": "https://art-app-b43df.firebaseio.com",
+    "project_id": "art-app-b43df",
+    "storage_bucket": "art-app-b43df.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1037667554131:android:f8408b59060b031e1547a6",
+        "android_client_info": {
+          "package_name": "com.example.artapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1037667554131-ai4nqkk3bhr1ucnp19vfiffvfkq0oefp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtw8wyoFcxBS3J1hHhcFkPdOyi57KqUKY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1037667554131-ai4nqkk3bhr1ucnp19vfiffvfkq0oefp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
