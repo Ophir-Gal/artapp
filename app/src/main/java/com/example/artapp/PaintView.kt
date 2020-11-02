@@ -7,19 +7,20 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.view.MotionEvent
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 
 class PaintView : View {
 
     private val path = Path()
     private val brush = Paint()
-
+    private val mDBRef : DatabaseReference = FirebaseDatabase.getInstance().getReference("canvas")
 
     constructor(context: Context) : super(context) {
         brush.isAntiAlias = true
         brush.color = Color.BLACK
         brush.style = Paint.Style.STROKE
         brush.strokeJoin = Paint.Join.ROUND
-
         brush.strokeWidth = 8f
 
     }
