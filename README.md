@@ -1,4 +1,6 @@
 # ArtApp
-An Android application for collaborative art.
+An Android application for collaborative art. This project is the
+semester project for CMSC436, UMD, Fall 2020.
 <hr>
 Team: Ophir Gal, Cheyenne Montgomery, and .
+Group #: 45.
