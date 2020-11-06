@@ -15,7 +15,7 @@ class PaintView : View {
 
     private val path = Path()
     private val brush = Paint()
-    private val mDBRef : DatabaseReference = FirebaseDatabase.getInstance().getReference("canvas")
+    private val mDatabaseAdapter : DatabaseAdapter
 
     constructor(context: Context) : super(context) {
         brush.isAntiAlias = true
@@ -23,6 +23,7 @@ class PaintView : View {
         brush.style = Paint.Style.STROKE
         brush.strokeJoin = Paint.Join.ROUND
         brush.strokeWidth = 8f
+        mDatabaseAdapter = DatabaseAdapter()
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
