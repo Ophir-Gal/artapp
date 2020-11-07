@@ -49,8 +49,8 @@ class DatabaseAdapter {
                 //      mPaintView.addToCanvas(pixels, otherWidth, otherHeight)
                 val otherUser = snapshot
                 if (otherUser.key != mUserKey) {
-                    val pix = otherUser.child("pixels").getValue() as String
-                    val otherPixels = pix.removeSurrounding("[", "]")
+                    val pix : String = otherUser.child("pixels").getValue() as String? ?: return
+                    val otherPixels = pix!!.removeSurrounding("[", "]")
                                          .replace("\\s".toRegex(), "")
                                          .split(",").map { it.toInt() }.toIntArray()
                     val otherWidth = (otherUser.child("w").getValue() as Long).toInt()
