@@ -68,8 +68,8 @@ class PaintView : View {
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        canvas!!.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint);
-        canvas!!.drawPath(path, brush);
+        canvas!!.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint)
+        canvas!!.drawPath(path, brush)
     }
 
     fun addToCanvas(otherPixels: IntArray, otherWidth: Int, otherHeight: Int) {
