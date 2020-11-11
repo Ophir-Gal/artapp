@@ -9,15 +9,18 @@ import android.view.View
 
 class PaintView : View {
 
-    private val path : Path = Path() // drawing path
-    private var canvasPaint : Paint? = null // defines what paint to draw with
-    private val brush : Paint = Paint() // defines how to draw
+    private val path: Path = Path() // drawing path
+    private var canvasPaint: Paint? = null // defines what paint to draw with
+    private val brush: Paint = Paint() // defines how to draw
     private val paintColor = Color.BLACK //initial color
     private var mCanvas: Canvas? = null // canvas - holds drawings and transfers them to the view
     private var canvasBitmap: Bitmap? = null // canvas bitmap
     private var currentBrushSize = 0f // current brush size
     private var lastBrushSize = 0f // last brush size
-    private lateinit var databaseAdapter : DatabaseAdapter
+    private var mLine: Line? = null // line object that needs to be drawn
+    private lateinit var databaseAdapter: DatabaseAdapter
+    private var mPoint : PointF = PointF() // holds reference to locations of touch
+    private var mScale : Int = 0 // need for later
 
     constructor(context: Context) : super(context) {
         currentBrushSize = 8f
@@ -30,6 +33,18 @@ class PaintView : View {
         brush.strokeCap = Paint.Cap.ROUND
 
         canvasPaint = Paint(Paint.DITHER_FLAG)
+    }
+
+    class Line() {
+        val points = ArrayList<PointF>()
+
+        val size = Point()
+            get() = field
+
+        fun setPoint(x: Float, y: Float) {
+            points.add(PointF(x, y))
+        }
+
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -51,13 +66,31 @@ class PaintView : View {
 
         if (event.action == MotionEvent.ACTION_DOWN) {
             path.moveTo(x, y)
+            mLine = Line()
+
+            // hold ref to starting point
+            mPoint.x = x
+            mPoint.y = y
+
+            // add it to our line
+            mLine!!.setPoint(mPoint.x, mPoint.y)
         } else if (event.action == MotionEvent.ACTION_MOVE) {
-            path.lineTo(x, y)
+
+            // set path from starting points to end points
+            path.quadTo(mPoint.x, mPoint.y, x, y)
+
+            //Log.i("TEST", "start ${mPoint.x} ${mPoint.y} end: ${x} ${y}")
+            // get reference to end point
+            mPoint.x = x
+            mPoint.y = y
+
+            // add it to our line
+            mLine!!.setPoint(mPoint.x, mPoint.y)
         } else if (event.action == MotionEvent.ACTION_UP) {
-            path.lineTo(x, y)
+            // draw the path and send it to the  database
             mCanvas!!.drawPath(path, brush);
             path.reset()
-            databaseAdapter.sendDrawingToDatabase(canvasBitmap!!)
+            databaseAdapter.sendLineToDatabase(mLine!!, canvasBitmap!!)
         } else {
             return false
         }
@@ -72,19 +105,31 @@ class PaintView : View {
         canvas!!.drawPath(path, brush)
     }
 
-    fun addToCanvas(otherPixels: IntArray, otherWidth: Int, otherHeight: Int) {
-        // Create Bitmap from pixels array
-        val newBitmap = Bitmap.createBitmap(otherPixels,
-            otherWidth, otherHeight, Bitmap.Config.ARGB_8888)
-            //.copy(Bitmap.Config.ARGB_8888,true) // I believe we don't need this line (doesn't need to be mutable)
-        // scale that cropped version to fit screen
-        val scaledBitmap = Bitmap.createScaledBitmap(newBitmap,
-            canvasBitmap!!.width, canvasBitmap!!.height,false
-        ) // I believe this returns a mutable bitmap
+    // sets path object out of the points received from database
+    private fun setPath(linePoints: List<PointF>): Path {
+        var currPoint = linePoints[0]
+        var nextPoint: PointF? = null
+        val path = Path()
 
-        // draw incoming bitmap on auxiliary canvas
-        mCanvas!!.drawBitmap(scaledBitmap, 0f, 0f, canvasPaint)
+        path.moveTo(currPoint.x, currPoint.y)
+        if (linePoints.size == 1) {
+            Log.i("PATH","ONE POINT")
+            path.lineTo(currPoint.x, currPoint.y)
+            invalidate()
+        } else {
+            Log.i("PATH", "NOT ONE POINT")
+            for (i in 1 until linePoints.size) {
+                nextPoint = linePoints[i]
+                path.quadTo(currPoint.x, currPoint.y, nextPoint.x, nextPoint.y)
+                invalidate()
+                currPoint = nextPoint
+            }
+        }
+        return path
+    }
 
-        postInvalidate()
+    // Draws the line
+    fun drawLine(line: Line) {
+        mCanvas!!.drawPath(setPath(line.points as List<PointF>), brush)
     }
 }

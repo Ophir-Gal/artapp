@@ -1,4 +1,4 @@
-package com.example.artapp
+ package com.example.artapp
 
 import android.graphics.Bitmap
 import android.util.Log
@@ -23,43 +23,36 @@ class DatabaseAdapter {
         setEventListeners()
     }
 
-    fun sendDrawingToDatabase(drawing: Bitmap) {
-        val pixels = IntArray(drawing.height * drawing.width)
-        drawing.getPixels(pixels, 0, drawing.width, 0, 0, drawing.width, drawing.height)
-        mUserRef.child("pixels").setValue(pixels.toList().toString())
+    fun sendLineToDatabase(line: PaintView.Line, drawing: Bitmap) {
+        //val pixels = IntArray(drawing.height * drawing.width) // probably use later
+        mUserRef.setValue(line)
             .addOnSuccessListener { Log.i("pixels", "pixels successfully written!") }
             .addOnFailureListener { e -> Log.i("pixels", "Error writing pixels :(", e) }
-        Log.i("pixels", "pixels")
     }
 
+
     private fun setUpUserEntry(){
-        mUserRef.child("w").setValue(mWidth)
-        mUserRef.child("h").setValue(mHeight)
-        mUserRef.child("pixels").setValue(null)
+        //mUserRef.child("w").setValue(mWidth)
+        //mUserRef.child("h").setValue(mHeight)
+        mUserRef.child("points").setValue(null)
+        //mUserRef.child("path").setValue(null)
     }
+
 
     private fun setEventListeners() {
         mDBRef.addChildEventListener(object : ChildEventListener {
 
+            // TODO:
+            // 1. Scale the line
+            // 2. Fix first line sometimes not drawing on others screen
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                // TODO: NEED TO IMPLEMENT THIS
-                // if child changed is some other user
-                //      get child's pixels and width and height
-                //      update display by calling:
-                //      mPaintView.addToCanvas(pixels, otherWidth, otherHeight)
                 val otherUser = snapshot
                 if (otherUser.key != mUserKey) {
-                    val pix : String = otherUser.child("pixels").getValue() as String? ?: return
-                    val otherPixels = pix!!.removeSurrounding("[", "]")
-                                         .replace("\\s".toRegex(), "")
-                                         .split(",").map { it.toInt() }.toIntArray()
-                    val otherWidth = (otherUser.child("w").getValue() as Long).toInt()
-                    val otherHeight = (otherUser.child("h").getValue() as Long).toInt()
-                    mPaintView.addToCanvas(
-                        otherPixels,
-                        otherWidth,
-                        otherHeight
-                    )
+                    // get the line obj from the database and draw it
+                    val line: PaintView.Line? = snapshot.getValue(PaintView.Line::class.java)
+                    if (line != null) {
+                        mPaintView.drawLine(line)
+                    }
                 }
             }
 
