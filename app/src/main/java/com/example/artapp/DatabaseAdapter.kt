@@ -44,7 +44,6 @@ class DatabaseAdapter {
 
             // TODO:
             // 1. Scale the line
-            // 2. Fix first line sometimes not drawing on others screen
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                 val otherUser = snapshot
                 if (otherUser.key != mUserKey) {
@@ -57,7 +56,14 @@ class DatabaseAdapter {
             }
 
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                // probably don't need to use this method
+                val otherUser = snapshot
+                if (otherUser.key != mUserKey) {
+                    // get the line obj from the database and draw it
+                    val line: PaintView.Line? = snapshot.getValue(PaintView.Line::class.java)
+                    if (line != null) {
+                        mPaintView.drawLine(line)
+                    }
+                }
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
