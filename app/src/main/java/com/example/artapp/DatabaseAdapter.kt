@@ -28,6 +28,7 @@ class DatabaseAdapter {
         mUserRef.setValue(line)
             .addOnSuccessListener { Log.i("pixels", "pixels successfully written!") }
             .addOnFailureListener { e -> Log.i("pixels", "Error writing pixels :(", e) }
+
     }
 
 
@@ -49,6 +50,7 @@ class DatabaseAdapter {
                 if (otherUser.key != mUserKey) {
                     // get the line obj from the database and draw it
                     val line: PaintView.Line? = snapshot.getValue(PaintView.Line::class.java)
+
                     if (line != null) {
                         mPaintView.drawLine(line)
                     }
