@@ -1,11 +1,15 @@
 package com.example.artapp
 
+import android.content.ContentValues
 import android.content.Context
 import android.graphics.*
+import android.net.Uri
+import android.provider.MediaStore
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import java.io.OutputStream
 
 
 class PaintView : View {
@@ -165,5 +169,35 @@ class PaintView : View {
         otherBrush.strokeCap = Paint.Cap.ROUND
 
         mCanvas!!.drawPath(setPath(line.points as List<PointF>), otherBrush)
+    }
+
+    fun downloadCanvas() {
+        val values = ContentValues()
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ArtApp")
+        values.put(MediaStore.Images.Media.IS_PENDING, true)
+
+        val uri: Uri? = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+        if (uri != null) {
+            saveImageToStream(canvasBitmap!!, context.contentResolver.openOutputStream(uri))
+            values.put(MediaStore.Images.Media.IS_PENDING, false)
+            context.contentResolver.update(uri, values, null, null)
+        }
+    }
+
+    private fun saveImageToStream(bitmap: Bitmap, outputStream: OutputStream?) {
+        if (outputStream != null) {
+            try {
+                bitmap.setHasAlpha(true);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                outputStream.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }

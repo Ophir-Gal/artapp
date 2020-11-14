@@ -4,6 +4,8 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.database.DatabaseReference
@@ -18,7 +20,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var mPaletteFab: FloatingActionButton
     private var smallBrush = true
     private var mColors = ArrayList<String>()
-    var index = 0
+    private var index = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +60,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun changeBrushColor() {
-        if (index < NUM_COLORS - 1)
+        if (index < mColors.size - 1)
             index++
         else
             index = 0
@@ -68,9 +70,26 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    companion object {
-        private val NUM_COLORS = 6
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        super.onCreateOptionsMenu(menu)
 
+        menu.add(Menu.NONE, MENU_DOWNLOAD, Menu.NONE, "Download Canvas")
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == MENU_DOWNLOAD) {
+            mCanvas.downloadCanvas()
+            return true
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
+
+
+    companion object {
+        private const val MENU_DOWNLOAD = Menu.FIRST
     }
 
 }
