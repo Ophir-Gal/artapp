@@ -180,10 +180,7 @@ class PaintView : View {
         tempCanvas.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint) // overlay the current drawing
 
         if (android.os.Build.VERSION.SDK_INT >= 29) {
-            val values = ContentValues()
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
-            values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+            val values = contentValues()
 
             values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ArtApp")
             values.put(MediaStore.Images.Media.IS_PENDING, true)
@@ -206,13 +203,21 @@ class PaintView : View {
             val file = File(directory, fileName)
             saveImageToStream(bitmapToSave, FileOutputStream(file))
             if (file.absolutePath != null) {
-                val values = ContentValues()
+                val values = contentValues()
                 values.put(MediaStore.Images.Media.DATA, file.absolutePath)
                 context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
             }
         }
     }
 
+    private fun contentValues() : ContentValues {
+        val values = ContentValues()
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+        return values
+    }
+    
     private fun saveImageToStream(bitmap: Bitmap, outputStream: OutputStream?) {
         if (outputStream != null) {
             try {
