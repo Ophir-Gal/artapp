@@ -183,7 +183,12 @@ class PaintView : View {
         val uri: Uri? = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
 
         if (uri != null) {
-            saveImageToStream(canvasBitmap!!, context.contentResolver.openOutputStream(uri))
+            val bitmapToSave = Bitmap.createBitmap(canvasBitmap!!.width, canvasBitmap!!.height,
+                    Bitmap.Config.ARGB_8888)
+            val tempCanvas = Canvas(bitmapToSave)
+            tempCanvas.drawColor(Color.WHITE) // set white background
+            tempCanvas.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint) // overlay the current drawing
+            saveImageToStream(bitmapToSave, context.contentResolver.openOutputStream(uri))
             values.put(MediaStore.Images.Media.IS_PENDING, false)
             context.contentResolver.update(uri, values, null, null)
         }
