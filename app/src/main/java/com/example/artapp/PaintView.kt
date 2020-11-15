@@ -29,10 +29,6 @@ class PaintView : View {
     private var mLine: Line? = null // line object that needs to be drawn
     private lateinit var databaseAdapter: DatabaseAdapter
     private var mPoint : PointF = PointF() // holds reference to locations of touch
-    private var mScale : Int = 0 // need for later
-
-
-
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         currentBrushSize = 8f
@@ -102,7 +98,7 @@ class PaintView : View {
             mPoint.y = y
 
             // add it to our line
-            mLine!!.setPoint(mPoint.x, mPoint.y)
+            mLine!!.setPoint(mPoint.x / width, mPoint.y / height)
         } else if (event.action == MotionEvent.ACTION_MOVE) {
 
             // set path from starting points to end points
@@ -114,9 +110,10 @@ class PaintView : View {
             mPoint.y = y
 
             // add it to our line
-            mLine!!.setPoint(mPoint.x, mPoint.y)
+            mLine!!.setPoint(mPoint.x / width, mPoint.y / height)
         } else if (event.action == MotionEvent.ACTION_UP) {
             // draw the path and send it to the  database
+            path.lineTo(mPoint.x, mPoint.y)
             mCanvas!!.drawPath(path, brush);
             path.reset()
             mLine!!.brushColor = paintColor
@@ -144,16 +141,16 @@ class PaintView : View {
         var nextPoint: PointF? = null
         val path = Path()
 
-        path.moveTo(currPoint.x, currPoint.y)
+        path.moveTo(currPoint.x * width, currPoint.y * height)
         if (linePoints.size == 1) {
             Log.i("PATH","ONE POINT")
-            path.lineTo(currPoint.x, currPoint.y)
+            path.lineTo(currPoint.x * width, currPoint.y * height)
             invalidate()
         } else {
             Log.i("PATH", "NOT ONE POINT")
             for (i in 1 until linePoints.size) {
                 nextPoint = linePoints[i]
-                path.quadTo(currPoint.x, currPoint.y, nextPoint.x, nextPoint.y)
+                path.quadTo(currPoint.x * width, currPoint.y * height, nextPoint.x * width, nextPoint.y * height)
                 invalidate()
                 currPoint = nextPoint
             }
