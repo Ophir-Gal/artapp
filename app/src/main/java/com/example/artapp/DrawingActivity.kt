@@ -72,24 +72,23 @@ class DrawingActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         super.onCreateOptionsMenu(menu)
-
-        menu.add(Menu.NONE, MENU_DOWNLOAD, Menu.NONE, "Download Canvas")
+        menuInflater.inflate(R.menu.menu, menu)
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == MENU_DOWNLOAD) {
+    override fun onOptionsItemSelected(item: MenuItem) =  when(item.itemId) {
+        R.id.action_download -> {
             mCanvas.downloadCanvas()
-            return true
+            true
         }
 
-        return super.onOptionsItemSelected(item)
-    }
+        R.id.action_share -> {
+            mCanvas.share()
+            true
+        }
 
-
-
-    companion object {
-        private const val MENU_DOWNLOAD = Menu.FIRST
+        else ->
+            super.onOptionsItemSelected(item)
     }
 
 }
