@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">ArtApp</string>
+    <string name="welcome_string">ArtApp</string>
+    <string name="global_bttn_string">Global Room</string>
+    <string name="existing_bttn_string">Existing Room</string>
+    <string name="new_bttn_string">New Room</string>
+
 </resources>
