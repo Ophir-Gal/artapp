@@ -2,44 +2,46 @@ package com.example.artapp
 
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 
 
 class DrawingActivity : AppCompatActivity() {
 
-    lateinit var mCanvas: PaintView
-    lateinit var mBrushFab: FloatingActionButton
-    lateinit var mPaletteFab: FloatingActionButton
-    private var smallBrush = true
+    private lateinit var mCanvas: PaintView
+    private lateinit var mBrushFabSmall: FloatingActionButton
+    private lateinit var mBrushFabLarge: FloatingActionButton
+    private lateinit var mPaletteFab: FloatingActionButton
+    private lateinit var mTopLayout : ConstraintLayout
+    private var mSmallBrush = true
     private var mColors = ArrayList<String>()
-    private var index = 0
+    private var mIndex = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_drawing)
         mCanvas = findViewById(R.id.canvas)
-        mBrushFab = findViewById(R.id.mainBrushFab)
+        mBrushFabSmall = findViewById(R.id.mainBrushFabSmall)
+        mBrushFabLarge = findViewById(R.id.mainBrushFabSmall)
         mPaletteFab = findViewById(R.id.colorFab)
+        mTopLayout = findViewById(R.id.drawingActivityTopLayout)
 
         mColors.add("black")
+        mColors.add("white")
         mColors.add("red")
         mColors.add("blue")
         mColors.add("cyan")
         mColors.add("green")
         mColors.add("yellow")
 
-
-        mBrushFab.setOnClickListener {
-            changeBrushSize()
-        }
 
         mPaletteFab.backgroundTintList = ColorStateList.valueOf(Color.BLACK)
         mPaletteFab.setOnClickListener{
@@ -57,25 +59,45 @@ class DrawingActivity : AppCompatActivity() {
         }
     }
 
-    fun changeBrushSize() {
-        if (smallBrush) {
-            mCanvas.changeBrushSize(15f)
-            smallBrush = false
+    fun changeBrushSize(view: View) {
+        if (mSmallBrush) {
+            mCanvas.changeBrushSize(LARGE_BRUSH_SIZE)
+            mSmallBrush = false
+            reverseOrderOfLastTwoChildrenViews()
         } else {
-            mCanvas.changeBrushSize(8f)
-            smallBrush = true
+            mCanvas.changeBrushSize(SMALL_BRUSH_SIZE)
+            mSmallBrush = true
+            reverseOrderOfLastTwoChildrenViews()
         }
+    }
 
+    private fun reverseOrderOfLastTwoChildrenViews() {
+        val childView1 = mTopLayout.getChildAt(mTopLayout.childCount - 1)
+        val childView2 = mTopLayout.getChildAt(mTopLayout.childCount - 2)
+        mTopLayout.removeViews(mTopLayout.childCount - 2, 2)
+        mTopLayout.addView(childView1)
+        mTopLayout.addView(childView2)
     }
 
     fun changeBrushColor() {
-        if (index < mColors.size - 1)
-            index++
+        if (mIndex < mColors.size - 1)
+            mIndex++
         else
-            index = 0
+            mIndex = 0
 
-        mCanvas.changeBrushColor(mColors[index])
-        mPaletteFab.backgroundTintList = ColorStateList.valueOf(Color.parseColor(mColors[index]))
+
+        if(mColors[mIndex] == "white") { // set icon color to gray if button color turns white
+            val drawable = getDrawable(R.drawable.ic_palette)
+            drawable!!.colorFilter = PorterDuffColorFilter(getColor(R.color.verylightgray),
+                    PorterDuff.Mode.SRC_IN)
+            mPaletteFab.setImageDrawable(drawable)
+        } else {
+            val drawable = getDrawable(R.drawable.ic_palette)
+            mPaletteFab.setImageDrawable(drawable)
+        }
+
+        mCanvas.changeBrushColor(mColors[mIndex])
+        mPaletteFab.backgroundTintList = ColorStateList.valueOf(Color.parseColor(mColors[mIndex]))
 
     }
 
@@ -100,4 +122,8 @@ class DrawingActivity : AppCompatActivity() {
             super.onOptionsItemSelected(item)
     }
 
+    companion object {
+        val LARGE_BRUSH_SIZE = 50f
+        val SMALL_BRUSH_SIZE = 10f
+    }
 }
