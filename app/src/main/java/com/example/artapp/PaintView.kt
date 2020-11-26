@@ -238,10 +238,18 @@ class PaintView : View {
         }
     }
 
+
+
     fun share() {
         val intent = Intent(Intent.ACTION_SEND).setType("image/*")
 
-        canvasBitmap!!.compress(Bitmap.CompressFormat.PNG, 100, ByteArrayOutputStream())
+        val bitmapToSave = Bitmap.createBitmap(canvasBitmap!!.width, canvasBitmap!!.height,
+                Bitmap.Config.ARGB_8888)
+        val tempCanvas = Canvas(bitmapToSave)
+        tempCanvas.drawColor(Color.WHITE) // set white background
+        tempCanvas.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint) // overlay the current drawing
+
+        bitmapToSave!!.compress(Bitmap.CompressFormat.PNG, 100, ByteArrayOutputStream())
 
         val path = MediaStore.Images.Media.insertImage(context.contentResolver,canvasBitmap, "tempImage", "ArtApp Canvas" )
 
