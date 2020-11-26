@@ -2,8 +2,10 @@ package com.example.artapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 
@@ -21,6 +23,7 @@ class MainActivity : AppCompatActivity() {
         mGlobalButton = findViewById(R.id.global_bttn)
         mExistingButton = findViewById(R.id.existing_bttn)
         mNewButton = findViewById(R.id.new_bttn)
+        DatabaseProxy.mMainActivity = this
 
         if (savedInstanceState != null) {
             mUserKey = savedInstanceState.getString("userKey")
@@ -35,16 +38,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onExistingRoomButtonClick(view: View) {
-        /*
-        show dialog to user asking for key
-        ask database to enter room
-        enter room if access granted
-        otherwise show appropriate dialog message to user (leave dialog open if possible)
-        */
+        // Shows dialog to user asking for key, and asks DatabaseAdapter to enter the room
+        // TODO: leave dialog open if possible
 
+        var roomKey = "1Q4cg"
 
-        /*mUserKey = DatabaseProxy.enterExistingRoom(mUserKey, roomKey)*/
-        /*startActivity(Intent(this@MainActivity, DrawingActivity::class.java))*/
+        DatabaseProxy.requestToEnterExistingRoom(mUserKey, roomKey)
+    }
+
+    // Enter room if access granted, otherwise show appropriate message to user
+    fun finishExistingRoomRequest(userKeyRoomKeyPair : Pair<String, String>?) {
+
+        if (userKeyRoomKeyPair != null) {
+            mUserKey = userKeyRoomKeyPair.first
+            val roomKey = userKeyRoomKeyPair.second
+            val existingRoomIntent = Intent(this@MainActivity, DrawingActivity::class.java)
+            existingRoomIntent.putExtra(BUTTON_CLICKED_EXTRA, EXISTING_ROOM)
+            existingRoomIntent.putExtra(ROOM_KEY_EXTRA, roomKey)
+            startActivity(existingRoomIntent)
+        } else {
+            Toast.makeText(this@MainActivity,
+                    "Could not find a matching room.",
+                    Toast.LENGTH_LONG).show()
+        }
     }
 
     fun onNewRoomButtonClick(view: View) {

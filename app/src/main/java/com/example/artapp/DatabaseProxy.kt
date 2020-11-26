@@ -3,14 +3,19 @@
 import android.graphics.Bitmap
 import android.util.Log
 import com.google.firebase.database.*
+import java.lang.Exception
 
 // `object` is used here to make the DatabaseProxy a singleton
 object DatabaseProxy {
 
     private val mDBRef : DatabaseReference = FirebaseDatabase.getInstance().reference
+    private val GLOBAL_ROOM_PATH = "globalRoom"
+    private val PRIVATE_ROOMS_PATH = "privateRooms"
+    private val ROOM_KEY_RANGE = 3..7
     private lateinit var mUserKey : String
     private lateinit var mUserRef : DatabaseReference
     public lateinit var mPaintView : PaintView
+    public lateinit var mMainActivity: MainActivity
     public var mWidth: Int = 0
     public var mHeight : Int = 0
 
@@ -21,10 +26,10 @@ object DatabaseProxy {
     // sets up the DB ref and returns a new user key if parameter is null
     fun enterGlobalRoom(userKey:String?) : String {
         if (userKey == null) { // user hasn't entered the room yet
-            mUserRef = mDBRef.child("globalRoom").push().ref // create user in global room
+            mUserRef = mDBRef.child(GLOBAL_ROOM_PATH).push().ref // create user in global room
             setUpUserEntry()
         } else { // user has already been in the room
-            mUserRef = mDBRef.child("globalRoom").child(userKey).ref // get reference
+            mUserRef = mDBRef.child(GLOBAL_ROOM_PATH).child(userKey).ref // get reference
         }
 
         mUserKey = mUserRef.key!! // save userKey
@@ -33,28 +38,55 @@ object DatabaseProxy {
         return mUserKey
     }
 
-    // sets up the DB ref and returns a new user key if userKey parameter is null
-    fun enterExistingRoom(userKey:String?, roomKey : String) : String {
-        val privateRoomsRef = mDBRef.child("privateRooms")
-        // if (privateRoomsRef.)  // check if key matches any existing room
+    // makes an asynchronous check to see if room exists, then calls the handler in MainActivity
+    fun requestToEnterExistingRoom(userKey:String?, roomKey : String) {
 
-        return mUserKey
+        mDBRef.child(PRIVATE_ROOMS_PATH).addListenerForSingleValueEvent(object : ValueEventListener {
+
+            override fun onDataChange(privateRoomsSnapshot: DataSnapshot) {
+                var privateRoomRef : DatabaseReference? = null
+                var responsePair : Pair<String, String>? = null
+                // search for a matching room key
+                for (privateRoom in privateRoomsSnapshot.children) {
+                    if (privateRoom.key!!.substring(ROOM_KEY_RANGE) == roomKey) { // roomKey matched
+                        privateRoomRef = privateRoomsSnapshot.ref.child(privateRoom.key!!).ref
+                        if (userKey == null) { // user does not have a userKey
+                            // create user inside private room
+                            mUserRef = privateRoomRef.push().ref
+                            setUpUserEntry()
+                        } else {               // user already has a userKey
+                            mUserRef = privateRoomRef.child(userKey).ref // get reference
+                        }
+                        mUserKey = mUserRef.key!! // save userKey
+                        setEventListeners()
+
+                        responsePair = Pair(mUserKey, roomKey) // prepare response tuple
+                    }
+                }
+
+                // respond to MainActivity's request
+                mMainActivity.finishExistingRoomRequest(responsePair)
+            }
+
+            // called when listener failed at server or was removed due to Firebase security rules
+            override fun onCancelled(p0: DatabaseError) {}
+        })
     }
 
     // sets up the DB ref and returns a new user key if parameter is null
     fun enterNewRoom(userKey:String?) : Pair<String, String> {
         if (userKey == null) { // user does not have a userKey
             // create private room and user
-            mUserRef = mDBRef.child("privateRooms").push().push().ref
+            mUserRef = mDBRef.child(PRIVATE_ROOMS_PATH).push().push().ref
         } else { // user already has a userKey
-            mUserRef = mDBRef.child("privateRooms").push().child(userKey).ref // get reference
+            mUserRef = mDBRef.child(PRIVATE_ROOMS_PATH).push().child(userKey).ref // get reference
         }
 
         mUserKey = mUserRef.key!! // save userKey
         setUpUserEntry()
         setEventListeners()
 
-        val roomKey = mUserRef.parent!!.key!!.substring(3..7) // notice the indices used here
+        val roomKey = mUserRef.parent!!.key!!.substring(ROOM_KEY_RANGE) // a substring is taken
         return Pair(mUserKey, roomKey)
     }
 
@@ -73,7 +105,7 @@ object DatabaseProxy {
                     // get the line obj from the database and draw it
                     val line: PaintView.Line? = otherUser.getValue(PaintView.Line::class.java)
 
-                    if (line != null) {
+                    if (line != null && mPaintView != null) {
                         mPaintView.drawLine(line)
                     }
                 }
@@ -83,7 +115,7 @@ object DatabaseProxy {
                 if (otherUser.key != mUserKey) {
                     // get the line obj from the database and draw it
                     val line: PaintView.Line? = otherUser.getValue(PaintView.Line::class.java)
-                    if (line != null) {
+                    if (line != null && mPaintView != null) {
                         mPaintView.drawLine(line)
                     }
                 }

@@ -161,6 +161,10 @@ class PaintView : View {
 
     // Draws the line
     fun drawLine(line: Line) {
+        if (line.points.isEmpty()) {
+            return // do nothing if there are no points to draw
+        }
+
         //create a new brush based off properties in Line
         val otherBrush = Paint()
         otherBrush.color = line.brushColor
