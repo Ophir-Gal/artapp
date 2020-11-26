@@ -5,8 +5,11 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.DialogFragment
+import course.examples.ui.alertdialog.RoomKeyDialogFragment
 
 
 class MainActivity : AppCompatActivity() {
@@ -14,6 +17,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mGlobalButton : Button
     private lateinit var mExistingButton: Button
     private lateinit var mNewButton: Button
+    private lateinit var mDialog: DialogFragment
+    private lateinit var mProgressBar: ProgressBar
     private var mUserKey: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,6 +28,7 @@ class MainActivity : AppCompatActivity() {
         mGlobalButton = findViewById(R.id.global_bttn)
         mExistingButton = findViewById(R.id.existing_bttn)
         mNewButton = findViewById(R.id.new_bttn)
+        mProgressBar = findViewById(R.id.progressBar)
         DatabaseProxy.mMainActivity = this
 
         if (savedInstanceState != null) {
@@ -37,12 +43,15 @@ class MainActivity : AppCompatActivity() {
         startActivity(globalRoomIntent)
     }
 
+    // Shows dialog to user asking for key
     fun onExistingRoomButtonClick(view: View) {
-        // Shows dialog to user asking for key, and asks DatabaseAdapter to enter the room
-        // TODO: leave dialog open if possible
+        // Create a new RoomKeyDialogFragment
+        mDialog = RoomKeyDialogFragment.newInstance()
+        mDialog.show(supportFragmentManager, ALERT_TAG) // Show RoomKeyDialogFragment
+    }
 
-        var roomKey = "1Q4cg"
-
+    fun requestToEnterExistingRoom(roomKey : String) {
+        mProgressBar.visibility = View.VISIBLE
         DatabaseProxy.requestToEnterExistingRoom(mUserKey, roomKey)
     }
 
@@ -61,6 +70,8 @@ class MainActivity : AppCompatActivity() {
                     "Could not find a matching room.",
                     Toast.LENGTH_LONG).show()
         }
+
+        mProgressBar.visibility = View.INVISIBLE
     }
 
     fun onNewRoomButtonClick(view: View) {
@@ -86,6 +97,6 @@ class MainActivity : AppCompatActivity() {
         val GLOBAL_ROOM = "Global Room"
         val EXISTING_ROOM = "Existing Room"
         val NEW_ROOM = "New Room"
-
+        private const val ALERT_TAG = "AlertDialog"
     }
 }
