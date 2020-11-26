@@ -30,7 +30,6 @@ class PaintView : View {
     private var currentBrushSize = 0f // current brush size
     private var lastBrushSize = 0f // last brush size
     private var mLine: Line? = null // line object that needs to be drawn
-    private lateinit var databaseAdapter: DatabaseAdapter
     private var mPoint : PointF = PointF() // holds reference to locations of touch
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
@@ -47,11 +46,8 @@ class PaintView : View {
         canvasPaint = Paint(Paint.DITHER_FLAG)
     }
 
-    class Line() {
+    class Line {
         val points = ArrayList<PointF>()
-
-        val size = Point()
-            get() = field
 
         fun setPoint(x: Float, y: Float) {
             points.add(PointF(x, y))
@@ -79,7 +75,9 @@ class PaintView : View {
         //create canvas of certain device size.
         super.onSizeChanged(w, h, oldw, oldh)
 
-        databaseAdapter = DatabaseAdapter(this, w, h)
+        DatabaseProxy.mWidth = w
+        DatabaseProxy.mHeight = h
+        DatabaseProxy.mPaintView = this
 
         //create Bitmap of certain w,h
         canvasBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
@@ -123,7 +121,7 @@ class PaintView : View {
             mLine!!.brushSize = currentBrushSize
 
 
-            databaseAdapter.sendLineToDatabase(mLine!!, canvasBitmap!!)
+            DatabaseProxy.sendLineToDatabase(mLine!!)
         } else {
             return false
         }

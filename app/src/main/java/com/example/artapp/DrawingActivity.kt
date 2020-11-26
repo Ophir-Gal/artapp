@@ -14,7 +14,6 @@ import com.google.firebase.database.FirebaseDatabase
 
 class DrawingActivity : AppCompatActivity() {
 
-    private val mDBRef : DatabaseReference = FirebaseDatabase.getInstance().getReference("users")
     lateinit var mCanvas: PaintView
     lateinit var mBrushFab: FloatingActionButton
     lateinit var mPaletteFab: FloatingActionButton
@@ -45,6 +44,16 @@ class DrawingActivity : AppCompatActivity() {
         mPaletteFab.backgroundTintList = ColorStateList.valueOf(Color.BLACK)
         mPaletteFab.setOnClickListener{
             changeBrushColor()
+        }
+
+        // Set action bar title
+        val prefix = "ArtApp"
+        when (intent.getStringExtra(MainActivity.BUTTON_CLICKED_EXTRA)) {
+            MainActivity.GLOBAL_ROOM -> supportActionBar!!.title = "$prefix (\uD83C\uDF10)"
+            else -> { // existing or new room
+                val roomKey = intent.getStringExtra(MainActivity.ROOM_KEY_EXTRA)
+                supportActionBar!!.title = "$prefix (\uD83D\uDD12) \uD83D\uDD11 = ${roomKey}"
+            }
         }
     }
 
