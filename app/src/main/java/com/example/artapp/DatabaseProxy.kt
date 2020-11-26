@@ -58,8 +58,9 @@ object DatabaseProxy {
         return Pair(mUserKey, roomKey)
     }
 
+    // Initializes the users entry with an empty line object
     private fun setUpUserEntry() {
-        mUserRef.setValue("")
+        mUserRef.setValue(PaintView.Line())
     }
 
     // TODO: should probably delete rooms when no users inside (can keep track of a user counter)
