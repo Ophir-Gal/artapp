@@ -14,7 +14,7 @@ object DatabaseProxy {
     private val ROOM_KEY_RANGE = 3..7
     private lateinit var mUserKey : String
     private lateinit var mUserRef : DatabaseReference
-    public lateinit var mPaintView : PaintView
+    public var mPaintView : PaintView? = null
     public lateinit var mMainActivity: MainActivity
     public var mWidth: Int = 0
     public var mHeight : Int = 0
@@ -106,7 +106,7 @@ object DatabaseProxy {
                     val line: PaintView.Line? = otherUser.getValue(PaintView.Line::class.java)
 
                     if (line != null && mPaintView != null) {
-                        mPaintView.drawLine(line)
+                        mPaintView!!.drawLine(line)
                     }
                 }
             }
@@ -116,7 +116,7 @@ object DatabaseProxy {
                     // get the line obj from the database and draw it
                     val line: PaintView.Line? = otherUser.getValue(PaintView.Line::class.java)
                     if (line != null && mPaintView != null) {
-                        mPaintView.drawLine(line)
+                        mPaintView!!.drawLine(line)
                     }
                 }
             }
