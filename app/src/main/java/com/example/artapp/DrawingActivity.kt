@@ -35,6 +35,7 @@ class DrawingActivity : AppCompatActivity() {
         mPaletteFab = findViewById(R.id.colorFab)
         mTopLayout = findViewById(R.id.drawingActivityTopLayout)
 
+        //colors users can use
         mColors.add("black")
         mColors.add("white")
         mColors.add("red")

@@ -179,7 +179,9 @@ class PaintView : View {
         mCanvas!!.drawPath(setPath(line.points as List<PointF>), otherBrush)
     }
 
+    //downloads current canvas
     fun downloadCanvas() {
+        //creates a new canvas/bitmap with a white background (unable to see drawings on a black background)
         val bitmapToSave = Bitmap.createBitmap(
             mCanvasBitmap!!.width, mCanvasBitmap!!.height,
             Bitmap.Config.ARGB_8888
@@ -205,6 +207,7 @@ class PaintView : View {
                 Toast.makeText(context, "Canvas downloaded to Photos", Toast.LENGTH_LONG).show()
             } else
                 Toast.makeText(context, "Download failed", Toast.LENGTH_LONG).show()
+
 
         } else {
             val directory =
@@ -245,6 +248,7 @@ class PaintView : View {
     }
 
 
+    //shares canvas via intent
     fun share() {
         val intent = Intent(Intent.ACTION_SEND).setType("image/*")
 
