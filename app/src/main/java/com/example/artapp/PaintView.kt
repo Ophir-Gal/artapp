@@ -5,13 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.*
 import android.net.Uri
-import android.os.Bundle
 import android.os.Environment
-import android.os.Parcel
-import android.os.Parcelable
 import android.provider.MediaStore
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
@@ -24,29 +20,29 @@ import java.io.OutputStream
 
 class PaintView : View {
 
-    private val path: Path = Path() // drawing path
-    private var canvasPaint: Paint? = null // defines what paint to draw with
-    private val brush: Paint = Paint() // defines how to draw
-    private var paintColor = Color.BLACK //initial color
+    private val mPath: Path = Path() // drawing path
+    private var mCanvasPaint: Paint? = null // defines what paint to draw with
+    private val mBrush: Paint = Paint() // defines how to draw
+    private var mPaintColor = Color.BLACK //initial color
     private var mCanvas: Canvas? = null // canvas - holds drawings and transfers them to the view
-    private var canvasBitmap: Bitmap? = null // canvas bitmap
-    private var currentBrushSize = 0f // current brush size
-    private var lastBrushSize = 0f // last brush size
+    private var mCanvasBitmap: Bitmap? = null // canvas bitmap
+    private var mCurrentBrushSize = 0f // current brush size
+    private var mLastBrushSize = 0f // last brush size
     private var mLine: Line? = null // line object that needs to be drawn
     private var mPoint: PointF = PointF() // holds reference to locations of touch
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
-        currentBrushSize = 8f
-        lastBrushSize = currentBrushSize
-        brush.color = paintColor
-        brush.isAntiAlias = true
-        brush.strokeWidth = currentBrushSize
-        brush.style = Paint.Style.STROKE
-        brush.strokeJoin = Paint.Join.ROUND
-        brush.strokeCap = Paint.Cap.ROUND
+        mCurrentBrushSize = 8f
+        mLastBrushSize = mCurrentBrushSize
+        mBrush.color = mPaintColor
+        mBrush.isAntiAlias = true
+        mBrush.strokeWidth = mCurrentBrushSize
+        mBrush.style = Paint.Style.STROKE
+        mBrush.strokeJoin = Paint.Join.ROUND
+        mBrush.strokeCap = Paint.Cap.ROUND
 
 
-        canvasPaint = Paint(Paint.DITHER_FLAG)
+        mCanvasPaint = Paint(Paint.DITHER_FLAG)
         setSaveEnabled(true)
     }
 
@@ -66,13 +62,13 @@ class PaintView : View {
     // 'blue', 'green', 'black', 'white', 'gray', 'cyan',
     // 'magenta', 'yellow', 'lightgray', 'darkgray'
     fun changeBrushColor(color: String) {
-        paintColor = Color.parseColor(color)
-        brush.color = paintColor
+        mPaintColor = Color.parseColor(color)
+        mBrush.color = mPaintColor
     }
 
     fun changeBrushSize(size: Float) {
-        currentBrushSize = size
-        brush.strokeWidth = currentBrushSize
+        mCurrentBrushSize = size
+        mBrush.strokeWidth = mCurrentBrushSize
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -84,10 +80,10 @@ class PaintView : View {
         DatabaseProxy.mPaintView = this
 
         //create Bitmap of certain w,h
-        canvasBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        mCanvasBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
 
         //apply bitmap to graphic to start drawing.
-        mCanvas = Canvas(canvasBitmap!!)
+        mCanvas = Canvas(mCanvasBitmap!!)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -95,7 +91,7 @@ class PaintView : View {
         var y = event.y
 
         if (event.action == MotionEvent.ACTION_DOWN) {
-            path.moveTo(x, y)
+            mPath.moveTo(x, y)
             mLine = Line()
 
             // hold ref to starting point
@@ -107,7 +103,7 @@ class PaintView : View {
         } else if (event.action == MotionEvent.ACTION_MOVE) {
 
             // set path from starting points to end points
-            path.quadTo(mPoint.x, mPoint.y, x, y)
+            mPath.quadTo(mPoint.x, mPoint.y, x, y)
 
             //Log.i("TEST", "start ${mPoint.x} ${mPoint.y} end: ${x} ${y}")
             // get reference to end point
@@ -118,11 +114,11 @@ class PaintView : View {
             mLine!!.setPoint(mPoint.x / width, mPoint.y / height)
         } else if (event.action == MotionEvent.ACTION_UP) {
             // draw the path and send it to the  database
-            path.lineTo(mPoint.x, mPoint.y)
-            mCanvas!!.drawPath(path, brush);
-            path.reset()
-            mLine!!.brushColor = paintColor
-            mLine!!.brushSize = currentBrushSize
+            mPath.lineTo(mPoint.x, mPoint.y)
+            mCanvas!!.drawPath(mPath, mBrush);
+            mPath.reset()
+            mLine!!.brushColor = mPaintColor
+            mLine!!.brushSize = mCurrentBrushSize
 
             DatabaseProxy.sendLineToDatabase(mLine!!)
         } else {
@@ -135,8 +131,8 @@ class PaintView : View {
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        canvas!!.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint)
-        canvas!!.drawPath(path, brush)
+        canvas!!.drawBitmap(mCanvasBitmap!!, 0f, 0f, mCanvasPaint)
+        canvas!!.drawPath(mPath, mBrush)
     }
 
     // sets path object out of the points received from database
@@ -185,12 +181,12 @@ class PaintView : View {
 
     fun downloadCanvas() {
         val bitmapToSave = Bitmap.createBitmap(
-            canvasBitmap!!.width, canvasBitmap!!.height,
+            mCanvasBitmap!!.width, mCanvasBitmap!!.height,
             Bitmap.Config.ARGB_8888
         )
         val tempCanvas = Canvas(bitmapToSave)
         tempCanvas.drawColor(Color.WHITE) // set white background
-        tempCanvas.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint) // overlay the current drawing
+        tempCanvas.drawBitmap(mCanvasBitmap!!, 0f, 0f, mCanvasPaint) // overlay the current drawing
 
         if (android.os.Build.VERSION.SDK_INT >= 29) {
             val values = contentValues()
@@ -252,19 +248,19 @@ class PaintView : View {
     fun share() {
         val intent = Intent(Intent.ACTION_SEND).setType("image/*")
 
-        val bitmapToSave = Bitmap.createBitmap(
-            canvasBitmap!!.width, canvasBitmap!!.height,
+        val bitmapToShare = Bitmap.createBitmap(
+            mCanvasBitmap!!.width, mCanvasBitmap!!.height,
             Bitmap.Config.ARGB_8888
         )
-        val tempCanvas = Canvas(bitmapToSave)
+        val tempCanvas = Canvas(bitmapToShare)
         tempCanvas.drawColor(Color.WHITE) // set white background
-        tempCanvas.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint) // overlay the current drawing
+        tempCanvas.drawBitmap(mCanvasBitmap!!, 0f, 0f, mCanvasPaint) // overlay the current drawing
 
-        bitmapToSave!!.compress(Bitmap.CompressFormat.PNG, 100, ByteArrayOutputStream())
+        bitmapToShare!!.compress(Bitmap.CompressFormat.PNG, 100, ByteArrayOutputStream())
 
         val path = MediaStore.Images.Media.insertImage(
             context.contentResolver,
-            canvasBitmap,
+            bitmapToShare,
             "tempImage",
             "ArtApp Canvas"
         )

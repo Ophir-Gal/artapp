@@ -26,7 +26,7 @@ class RoomKeyDialogFragment : DialogFragment() {
             .setTitle("Enter Room Key:")
             .setView(inputText)
 
-            // User cannot dismiss dialog by hitting back button
+            // User can dismiss dialog by hitting back button
             .setCancelable(true)
 
             // Set up Cancel Button

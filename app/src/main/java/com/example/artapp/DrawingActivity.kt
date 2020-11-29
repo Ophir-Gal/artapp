@@ -128,11 +128,6 @@ class DrawingActivity : AppCompatActivity() {
             super.onOptionsItemSelected(item)
     }
 
-    companion object {
-        val LARGE_BRUSH_SIZE = 50f
-        val SMALL_BRUSH_SIZE = 10f
-    }
-
     override fun onResume() {
         super.onResume()
         DatabaseProxy.updateView()
@@ -141,5 +136,10 @@ class DrawingActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         DatabaseProxy.removeListeners()
+    }
+
+    companion object {
+        val LARGE_BRUSH_SIZE = 50f
+        val SMALL_BRUSH_SIZE = 10f
     }
 }
