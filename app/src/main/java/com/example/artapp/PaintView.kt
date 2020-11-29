@@ -71,6 +71,7 @@ class PaintView : View {
         mBrush.strokeWidth = mCurrentBrushSize
     }
 
+    // Called when activity loads, it is overridden here to initialize variables
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         //create canvas of certain device size.
         super.onSizeChanged(w, h, oldw, oldh)
