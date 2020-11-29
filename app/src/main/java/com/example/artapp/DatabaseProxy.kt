@@ -3,7 +3,7 @@
 import android.util.Log
 import com.google.firebase.database.*
 
- // `object` is used here to make the DatabaseProxy a singleton
+// `object` is used here to make the DatabaseProxy a singleton
 object DatabaseProxy {
 
     private val mDBRef : DatabaseReference = FirebaseDatabase.getInstance().reference
@@ -103,8 +103,7 @@ object DatabaseProxy {
         mUserRef.setValue(PaintView.Line())
     }
 
-    // TODO: should probably delete rooms when no users inside (can keep track of a user counter)
-    // TODO: should probably write code to remove event listeners when user exits a room
+    // Adds event listeners to listen to firebase for drawings from other users
     private fun setEventListeners() {
         mValueEventListener2 = object : ChildEventListener {
 
@@ -145,6 +144,7 @@ object DatabaseProxy {
         mDBref2.addChildEventListener(mValueEventListener2)
     }
 
+    // writes user's last drawing/scribble to the appropriate "room" on firebase
     fun sendLineToDatabase(line: PaintView.Line) {
         var currRoom = mUserRef.parent!!.key!!
         if(currRoom == GLOBAL_ROOM_PATH) {

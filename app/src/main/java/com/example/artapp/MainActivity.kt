@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Event handler for "Global Room" button click
     fun onGlobalRoomButtonClick(view: View) {
         mUserKey = DatabaseProxy.enterGlobalRoom(mUserKey)
         val globalRoomIntent = Intent(this@MainActivity, DrawingActivity::class.java)
@@ -43,19 +44,20 @@ class MainActivity : AppCompatActivity() {
         startActivity(globalRoomIntent)
     }
 
-    // Shows dialog to user asking for key
+    // Event handler for "Existing Room" button click (shows dialog to user asking for room key)
     fun onExistingRoomButtonClick(view: View) {
         // Create a new RoomKeyDialogFragment
         mDialog = RoomKeyDialogFragment.newInstance()
         mDialog.show(supportFragmentManager, ALERT_TAG) // Show RoomKeyDialogFragment
     }
 
+    // Asks DatabaseProxy to enter an existing room (DatabaseProxy validates key & calls finishExistingRoomRequest)
     fun requestToEnterExistingRoom(roomKey : String) {
         mProgressBar.visibility = View.VISIBLE
         DatabaseProxy.requestToEnterExistingRoom(mUserKey, roomKey)
     }
 
-    // Enter room if access granted, otherwise show appropriate message to user
+    // Enter room if access granted, or show appropriate message to user (called from DatabaseProxy)
     fun finishExistingRoomRequest(userKeyRoomKeyPair : Pair<String, String>?) {
 
         if (userKeyRoomKeyPair != null) {
@@ -74,6 +76,7 @@ class MainActivity : AppCompatActivity() {
         mProgressBar.visibility = View.INVISIBLE
     }
 
+    // Event handler for "New Room" button click
     fun onNewRoomButtonClick(view: View) {
         val userKeyRoomKeyPair = DatabaseProxy.enterNewRoom(mUserKey)
         mUserKey = userKeyRoomKeyPair.first
@@ -84,6 +87,7 @@ class MainActivity : AppCompatActivity() {
         startActivity(newRoomIntent)
     }
 
+    // Saves current user's userKey in the bundle so as not to create a redundant database entry
     override fun onSaveInstanceState(outState: Bundle) {
         if (mUserKey != null) {
             outState.putString("userKey", mUserKey)
