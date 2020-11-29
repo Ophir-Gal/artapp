@@ -5,7 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.*
 import android.net.Uri
+import android.os.Bundle
 import android.os.Environment
+import android.os.Parcel
+import android.os.Parcelable
 import android.provider.MediaStore
 import android.util.AttributeSet
 import android.util.Log
@@ -30,7 +33,7 @@ class PaintView : View {
     private var currentBrushSize = 0f // current brush size
     private var lastBrushSize = 0f // last brush size
     private var mLine: Line? = null // line object that needs to be drawn
-    private var mPoint : PointF = PointF() // holds reference to locations of touch
+    private var mPoint: PointF = PointF() // holds reference to locations of touch
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         currentBrushSize = 8f
@@ -44,9 +47,10 @@ class PaintView : View {
 
 
         canvasPaint = Paint(Paint.DITHER_FLAG)
+        setSaveEnabled(true)
     }
 
-    class Line {
+    class Line() {
         val points = ArrayList<PointF>()
 
         fun setPoint(x: Float, y: Float) {
@@ -120,7 +124,6 @@ class PaintView : View {
             mLine!!.brushColor = paintColor
             mLine!!.brushSize = currentBrushSize
 
-
             DatabaseProxy.sendLineToDatabase(mLine!!)
         } else {
             return false
@@ -144,14 +147,17 @@ class PaintView : View {
 
         path.moveTo(currPoint.x * width, currPoint.y * height)
         if (linePoints.size == 1) {
-            Log.i("PATH","ONE POINT")
             path.lineTo(currPoint.x * width, currPoint.y * height)
             invalidate()
         } else {
-            Log.i("PATH", "NOT ONE POINT")
             for (i in 1 until linePoints.size) {
                 nextPoint = linePoints[i]
-                path.quadTo(currPoint.x * width, currPoint.y * height, nextPoint.x * width, nextPoint.y * height)
+                path.quadTo(
+                    currPoint.x * width,
+                    currPoint.y * height,
+                    nextPoint.x * width,
+                    nextPoint.y * height
+                )
                 invalidate()
                 currPoint = nextPoint
             }
@@ -178,8 +184,10 @@ class PaintView : View {
     }
 
     fun downloadCanvas() {
-        val bitmapToSave = Bitmap.createBitmap(canvasBitmap!!.width, canvasBitmap!!.height,
-                Bitmap.Config.ARGB_8888)
+        val bitmapToSave = Bitmap.createBitmap(
+            canvasBitmap!!.width, canvasBitmap!!.height,
+            Bitmap.Config.ARGB_8888
+        )
         val tempCanvas = Canvas(bitmapToSave)
         tempCanvas.drawColor(Color.WHITE) // set white background
         tempCanvas.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint) // overlay the current drawing
@@ -190,7 +198,8 @@ class PaintView : View {
             values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ArtApp")
             values.put(MediaStore.Images.Media.IS_PENDING, true)
 
-            val uri: Uri? = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+            val uri: Uri? =
+                context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
 
             if (uri != null) {
                 //success
@@ -202,7 +211,8 @@ class PaintView : View {
                 Toast.makeText(context, "Download failed", Toast.LENGTH_LONG).show()
 
         } else {
-            val directory = File(Environment.getExternalStorageDirectory().toString() + separator + "ArtApp")
+            val directory =
+                File(Environment.getExternalStorageDirectory().toString() + separator + "ArtApp")
 
             if (!directory.exists())
                 directory.mkdirs()
@@ -218,7 +228,7 @@ class PaintView : View {
         }
     }
 
-    private fun contentValues() : ContentValues {
+    private fun contentValues(): ContentValues {
         val values = ContentValues()
         values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
         values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
@@ -239,19 +249,25 @@ class PaintView : View {
     }
 
 
-
     fun share() {
         val intent = Intent(Intent.ACTION_SEND).setType("image/*")
 
-        val bitmapToSave = Bitmap.createBitmap(canvasBitmap!!.width, canvasBitmap!!.height,
-                Bitmap.Config.ARGB_8888)
+        val bitmapToSave = Bitmap.createBitmap(
+            canvasBitmap!!.width, canvasBitmap!!.height,
+            Bitmap.Config.ARGB_8888
+        )
         val tempCanvas = Canvas(bitmapToSave)
         tempCanvas.drawColor(Color.WHITE) // set white background
         tempCanvas.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint) // overlay the current drawing
 
         bitmapToSave!!.compress(Bitmap.CompressFormat.PNG, 100, ByteArrayOutputStream())
 
-        val path = MediaStore.Images.Media.insertImage(context.contentResolver,canvasBitmap, "tempImage", "ArtApp Canvas" )
+        val path = MediaStore.Images.Media.insertImage(
+            context.contentResolver,
+            canvasBitmap,
+            "tempImage",
+            "ArtApp Canvas"
+        )
 
         val uri = Uri.parse(path)
 

@@ -5,6 +5,8 @@ import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
+import android.provider.ContactsContract
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -26,7 +28,6 @@ class DrawingActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_drawing)
         mCanvas = findViewById(R.id.canvas)
         mBrushFabSmall = findViewById(R.id.mainBrushFabSmall)
@@ -57,6 +58,11 @@ class DrawingActivity : AppCompatActivity() {
                 supportActionBar!!.title = "$prefix (\uD83D\uDD12) \uD83D\uDD11 = ${roomKey}"
             }
         }
+        var x = PaintView.Line()
+        x.setPoint(0.0001f, 0.0001f)
+        x.brushSize = 8f
+        x.brushColor = Color.BLACK
+        DatabaseProxy.sendLineToDatabase(x)
     }
 
     fun changeBrushSize(view: View) {
@@ -125,5 +131,15 @@ class DrawingActivity : AppCompatActivity() {
     companion object {
         val LARGE_BRUSH_SIZE = 50f
         val SMALL_BRUSH_SIZE = 10f
+    }
+
+    override fun onResume() {
+        super.onResume()
+        DatabaseProxy.updateView()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        DatabaseProxy.removeListeners()
     }
 }

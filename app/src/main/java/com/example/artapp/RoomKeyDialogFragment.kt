@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.app.Dialog
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.EditText
 import androidx.fragment.app.DialogFragment
 import com.example.artapp.MainActivity

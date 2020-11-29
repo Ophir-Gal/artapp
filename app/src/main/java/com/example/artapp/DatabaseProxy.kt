@@ -1,6 +1,7 @@
  package com.example.artapp
 
 import android.graphics.Bitmap
+import android.os.Bundle
 import android.util.Log
 import com.google.firebase.database.*
 import java.lang.Exception
@@ -18,6 +19,13 @@ object DatabaseProxy {
     public lateinit var mMainActivity: MainActivity
     public var mWidth: Int = 0
     public var mHeight : Int = 0
+    public var mDBref1 : DatabaseReference = mDBRef
+    public var mDBref2 : DatabaseReference = mDBRef
+    public var mDBref3 : DatabaseReference = mDBRef
+    private lateinit var valueEventListener1 : ValueEventListener
+    private lateinit var valueEventListener2 : ChildEventListener
+    private lateinit var valueEventListener3 : ValueEventListener
+
 
     init {
         // in case we need to initialize anything
@@ -41,7 +49,9 @@ object DatabaseProxy {
     // makes an asynchronous check to see if room exists, then calls the handler in MainActivity
     fun requestToEnterExistingRoom(userKey:String?, roomKey : String) {
 
-        mDBRef.child(PRIVATE_ROOMS_PATH).addListenerForSingleValueEvent(object : ValueEventListener {
+        mDBref3 = mDBRef.child(PRIVATE_ROOMS_PATH)
+
+        valueEventListener3 = object : ValueEventListener {
 
             override fun onDataChange(privateRoomsSnapshot: DataSnapshot) {
                 var privateRoomRef : DatabaseReference? = null
@@ -70,7 +80,8 @@ object DatabaseProxy {
 
             // called when listener failed at server or was removed due to Firebase security rules
             override fun onCancelled(p0: DatabaseError) {}
-        })
+        }
+        mDBref3.addListenerForSingleValueEvent(valueEventListener3)
     }
 
     // sets up the DB ref and returns a new user key if parameter is null
@@ -98,10 +109,10 @@ object DatabaseProxy {
     // TODO: should probably delete rooms when no users inside (can keep track of a user counter)
     // TODO: should probably write code to remove event listeners when user exits a room
     private fun setEventListeners() {
-        mUserRef.parent!!.addChildEventListener(object : ChildEventListener {
+        valueEventListener2 = object : ChildEventListener {
 
             override fun onChildChanged(otherUser: DataSnapshot, previousChildName: String?) {
-                if (otherUser.key != mUserKey) {
+                if (otherUser.key != mUserKey && otherUser.key != "list") {
                     // get the line obj from the database and draw it
                     val line: PaintView.Line? = otherUser.getValue(PaintView.Line::class.java)
 
@@ -132,14 +143,64 @@ object DatabaseProxy {
             override fun onCancelled(error: DatabaseError) {
                 // probably don't need to use this method
             }
-        })
+        }
+        mDBref2 = mUserRef.parent!!
+        mDBref2.addChildEventListener(valueEventListener2)
     }
 
     fun sendLineToDatabase(line: PaintView.Line) {
-        //val pixels = IntArray(drawing.height * drawing.width) // probably use later
+        var currRoom = mUserRef.parent!!.key!!
+        if(currRoom == GLOBAL_ROOM_PATH) {
+            var ref = mDBRef.child(GLOBAL_ROOM_PATH).child("list").push()
+            ref.setValue(line)
+        } else {
+            var ref = mDBRef.child(PRIVATE_ROOMS_PATH).child(currRoom).child("list").push()
+            ref.setValue(line)
+        }
+
         mUserRef.setValue(line)
                 .addOnSuccessListener { Log.i("line", "Line successfully written!") }
                 .addOnFailureListener { e -> Log.i("line", "Error writing line :(", e) }
 
     }
+
+    fun updateView() {
+        var currRoom = mUserRef.parent!!.key!!
+        mDBref1 = if(currRoom == GLOBAL_ROOM_PATH) {
+            mDBRef.child(GLOBAL_ROOM_PATH).child("list")
+        } else {
+            mDBRef.child(PRIVATE_ROOMS_PATH).child(currRoom).child("list")
+        }
+        var list2 = ArrayList<PaintView.Line>()
+        valueEventListener1 = object : ValueEventListener {
+            override fun onCancelled(p0: DatabaseError) {
+            }
+
+            override fun onDataChange(data: DataSnapshot) {
+                for(i in data.children) {
+                    var line = i.getValue(PaintView.Line::class.java)
+                    list2.add(line!!)
+                }
+                for(y in list2) {
+                    if (y != null && mPaintView != null) {
+                        mPaintView!!.drawLine(y)
+                    }
+                }
+            }
+        }
+        mDBref1.addValueEventListener(valueEventListener1)
+    }
+
+    fun removeListeners() {
+        if(mDBref1 != null) {
+            mDBref1.removeEventListener(valueEventListener1)
+        }
+        if(mDBref2 != null) {
+            mDBref2.removeEventListener(valueEventListener2)
+        }
+        if(mDBref3 != null && mDBref3 != mDBRef) {
+            mDBref3.removeEventListener(valueEventListener3)
+        }
+    }
+
 }
