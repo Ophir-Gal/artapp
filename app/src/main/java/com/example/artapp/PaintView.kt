@@ -142,14 +142,15 @@ class PaintView : View {
         var nextPoint: PointF? = null
         val path = Path()
 
+        // Sets path to the lines starting point
         path.moveTo(currPoint.x * width, currPoint.y * height)
         if (linePoints.size == 1) {
             path.lineTo(currPoint.x * width, currPoint.y * height)
             invalidate()
-        } else {
-            for (i in 1 until linePoints.size) {
+        } else { // line is more than one pixel
+            for (i in 1 until linePoints.size) { // Loop through the list of points
                 nextPoint = linePoints[i]
-                path.quadTo(
+                path.quadTo( // draws line from starting point to end point
                     currPoint.x * width,
                     currPoint.y * height,
                     nextPoint.x * width,
@@ -177,7 +178,7 @@ class PaintView : View {
         otherBrush.strokeJoin = Paint.Join.ROUND
         otherBrush.strokeCap = Paint.Cap.ROUND
 
-        mCanvas!!.drawPath(setPath(line.points as List<PointF>), otherBrush)
+        mCanvas!!.drawPath(setPath(line.points as List<PointF>), otherBrush)  // draws each path
     }
 
     //downloads current canvas

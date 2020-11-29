@@ -16,12 +16,12 @@ object DatabaseProxy {
     public lateinit var mMainActivity: MainActivity
     public var mWidth: Int = 0
     public var mHeight : Int = 0
-    public var mDBref1 : DatabaseReference = mDBRef
-    public var mDBref2 : DatabaseReference = mDBRef
-    public var mDBref3 : DatabaseReference = mDBRef
-    private lateinit var mValueEventListener1 : ValueEventListener
-    private lateinit var mValueEventListener2 : ChildEventListener
-    private lateinit var mValueEventListener3 : ValueEventListener
+    public var mDBcurrRoomRef : DatabaseReference = mDBRef
+    public var mDBparentRef : DatabaseReference = mDBRef
+    public var mDBprivateRoomRef : DatabaseReference = mDBRef
+    private lateinit var mUpdateViewListener : ValueEventListener
+    private lateinit var mRealtimeListener : ChildEventListener
+    private lateinit var mPrivateRoomListener : ValueEventListener
 
 
     init {
@@ -46,9 +46,9 @@ object DatabaseProxy {
     // makes an asynchronous check to see if room exists, then calls the handler in MainActivity
     fun requestToEnterExistingRoom(userKey:String?, roomKey : String) {
 
-        mDBref3 = mDBRef.child(PRIVATE_ROOMS_PATH)
+        mDBprivateRoomRef = mDBRef.child(PRIVATE_ROOMS_PATH)
 
-        mValueEventListener3 = object : ValueEventListener {
+        mPrivateRoomListener = object : ValueEventListener {
 
             override fun onDataChange(privateRoomsSnapshot: DataSnapshot) {
                 var privateRoomRef : DatabaseReference? = null
@@ -78,7 +78,7 @@ object DatabaseProxy {
             // called when listener failed at server or was removed due to Firebase security rules
             override fun onCancelled(p0: DatabaseError) {}
         }
-        mDBref3.addListenerForSingleValueEvent(mValueEventListener3)
+        mDBprivateRoomRef.addListenerForSingleValueEvent(mPrivateRoomListener)
     }
 
     // sets up the DB ref and returns a new user key if parameter is null
@@ -105,7 +105,7 @@ object DatabaseProxy {
 
     // Adds event listeners to listen to firebase for drawings from other users
     private fun setEventListeners() {
-        mValueEventListener2 = object : ChildEventListener {
+        mRealtimeListener = object : ChildEventListener {
 
             override fun onChildChanged(otherUser: DataSnapshot, previousChildName: String?) {
                 if (otherUser.key != mUserKey && otherUser.key != "list") {
@@ -140,63 +140,70 @@ object DatabaseProxy {
                 // probably don't need to use this method
             }
         }
-        mDBref2 = mUserRef.parent!!
-        mDBref2.addChildEventListener(mValueEventListener2)
+        mDBparentRef = mUserRef.parent!!
+        mDBparentRef.addChildEventListener(mRealtimeListener)
     }
 
     // writes user's last drawing/scribble to the appropriate "room" on firebase
     fun sendLineToDatabase(line: PaintView.Line) {
         var currRoom = mUserRef.parent!!.key!!
-        if(currRoom == GLOBAL_ROOM_PATH) {
+
+        // Adds line to a list in the database containing every drawn line
+        if(currRoom == GLOBAL_ROOM_PATH) { // User is in global room
             var ref = mDBRef.child(GLOBAL_ROOM_PATH).child("list").push()
             ref.setValue(line)
-        } else {
+        } else { // User is in a private room
             var ref = mDBRef.child(PRIVATE_ROOMS_PATH).child(currRoom).child("list").push()
             ref.setValue(line)
         }
 
+        // Sets the current users reference in the database to this line object
         mUserRef.setValue(line)
                 .addOnSuccessListener { Log.i("line", "Line successfully written!") }
                 .addOnFailureListener { e -> Log.i("line", "Error writing line :(", e) }
 
     }
 
+    // Pulls already drawn lines from database and draws them on the current canvas
     fun updateView() {
         var currRoom = mUserRef.parent!!.key!!
-        mDBref1 = if(currRoom == GLOBAL_ROOM_PATH) {
+
+        // Sets reference to the current room
+        mDBcurrRoomRef = if(currRoom == GLOBAL_ROOM_PATH) {
             mDBRef.child(GLOBAL_ROOM_PATH).child("list")
         } else {
             mDBRef.child(PRIVATE_ROOMS_PATH).child(currRoom).child("list")
         }
         var list2 = ArrayList<PaintView.Line>()
-        mValueEventListener1 = object : ValueEventListener {
+        mUpdateViewListener = object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
             }
 
             override fun onDataChange(data: DataSnapshot) {
                 for(i in data.children) {
                     var line = i.getValue(PaintView.Line::class.java)
-                    list2.add(line!!)
+                    list2.add(line!!)  // Adds current snapshot to a list
                 }
-                for(y in list2) {
+                for(y in list2) {  // Loops through list and draws each line
                     if (y != null && mPaintView != null) {
                         mPaintView!!.drawLine(y)
                     }
                 }
             }
         }
-        mDBref1.addValueEventListener(mValueEventListener1)
+        mDBcurrRoomRef.addValueEventListener(mUpdateViewListener)
     }
 
+    // Removes event listeners on firebase
     fun removeListeners() {
-        if(mDBref1 != null) {
-            mDBref1.removeEventListener(mValueEventListener1)
+        if(mDBcurrRoomRef != null) {
+            mDBcurrRoomRef.removeEventListener(mUpdateViewListener)
         }
-        if(mDBref2 != null) {
-            mDBref2.removeEventListener(mValueEventListener2)
+        if(mDBparentRef != null) {
+            mDBparentRef.removeEventListener(mRealtimeListener)
         }
-        if(mDBref3 != null && mDBref3 != mDBRef) {
-            mDBref3.removeEventListener(mValueEventListener3)
+        if(mDBprivateRoomRef != null && mDBprivateRoomRef != mDBRef) {
+            mDBprivateRoomRef.removeEventListener(mPrivateRoomListener)
         }
     }
 
