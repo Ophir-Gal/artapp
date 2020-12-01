@@ -5,8 +5,6 @@ import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
-import android.provider.ContactsContract
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -25,6 +23,7 @@ class DrawingActivity : AppCompatActivity() {
     private var mSmallBrush = true
     private var mColors = ArrayList<String>()
     private var mIndex = 0
+    private lateinit var roomKey: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,12 +49,13 @@ class DrawingActivity : AppCompatActivity() {
             changeBrushColor()
         }
 
+        roomKey = ""
         // Set action bar title
         val prefix = "ArtApp"
         when (intent.getStringExtra(MainActivity.BUTTON_CLICKED_EXTRA)) {
             MainActivity.GLOBAL_ROOM -> supportActionBar!!.title = "$prefix (\uD83C\uDF10)"
             else -> { // existing or new room
-                val roomKey = intent.getStringExtra(MainActivity.ROOM_KEY_EXTRA)
+                roomKey = intent.getStringExtra(MainActivity.ROOM_KEY_EXTRA).toString()
                 supportActionBar!!.title = "$prefix (\uD83D\uDD12) \uD83D\uDD11 = ${roomKey}"
             }
         }
@@ -110,22 +110,29 @@ class DrawingActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         super.onCreateOptionsMenu(menu)
-        menuInflater.inflate(R.menu.menu, menu)
+        menu.add(Menu.NONE, MENU_DOWNLOAD_CANVAS, Menu.NONE, "Download Canvas")
+        menu.add(Menu.NONE, MENU_SHARE_CANVAS, Menu.NONE, "Share Canvas")
+        menu.add(Menu.NONE, MENU_SHARE_CODE, Menu.NONE, "Invite Friends")
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem) =  when(item.itemId) {
-        R.id.action_download -> {
+        MENU_DOWNLOAD_CANVAS -> {
             mCanvas.downloadCanvas()
             true
         }
 
-        R.id.action_share -> {
+        MENU_SHARE_CANVAS -> {
             mCanvas.share()
             true
         }
 
-        else ->
+        MENU_SHARE_CODE -> {
+            mCanvas.shareCode(roomKey)
+            true
+        }
+
+         else ->
             super.onOptionsItemSelected(item)
     }
 
@@ -142,5 +149,8 @@ class DrawingActivity : AppCompatActivity() {
     companion object {
         val LARGE_BRUSH_SIZE = 50f
         val SMALL_BRUSH_SIZE = 10f
+        private val MENU_DOWNLOAD_CANVAS = Menu.FIRST
+        private val MENU_SHARE_CANVAS = Menu.FIRST + 1
+        private val MENU_SHARE_CODE = Menu.FIRST + 2
     }
 }

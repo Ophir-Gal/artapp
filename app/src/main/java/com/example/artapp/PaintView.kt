@@ -276,4 +276,14 @@ class PaintView : View {
         intent.putExtra(Intent.EXTRA_STREAM, uri)
         context.startActivity(intent)
     }
+
+    fun shareCode(roomKey: String) {
+        val intent = Intent(Intent.ACTION_SEND).setType("text/plain")
+        if (roomKey.isEmpty())
+            intent.putExtra(Intent.EXTRA_TEXT, "Join me in the Global Room in ArtApp!")
+        else
+            intent.putExtra(Intent.EXTRA_TEXT, "Join me in a private room in ArtApp! The key is $roomKey")
+
+        context.startActivity(intent)
+    }
 }
