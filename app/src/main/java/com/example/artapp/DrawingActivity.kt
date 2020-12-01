@@ -59,11 +59,6 @@ class DrawingActivity : AppCompatActivity() {
                 supportActionBar!!.title = "$prefix (\uD83D\uDD12) \uD83D\uDD11 = ${roomKey}"
             }
         }
-        var x = PaintView.Line()
-        x.setPoint(0.0001f, 0.0001f)
-        x.brushSize = 8f
-        x.brushColor = Color.BLACK
-        DatabaseProxy.sendLineToDatabase(x)
     }
 
     fun changeBrushSize(view: View) {
@@ -134,11 +129,6 @@ class DrawingActivity : AppCompatActivity() {
 
          else ->
             super.onOptionsItemSelected(item)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        DatabaseProxy.updateView()
     }
 
     override fun onDestroy() {

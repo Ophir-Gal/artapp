@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
@@ -285,5 +286,12 @@ class PaintView : View {
             intent.putExtra(Intent.EXTRA_TEXT, "Join me in a private room in ArtApp! The key is $roomKey")
 
         context.startActivity(intent)
+    }
+
+    override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
+        super.onWindowFocusChanged(hasWindowFocus)
+        if(hasWindowFocus == true) {
+            DatabaseProxy.updateView()
+        }
     }
 }
